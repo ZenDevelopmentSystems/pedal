@@ -62,6 +62,20 @@ class CenterScale(object):
     def inv_transform(self, data):
         pass
 
+class Shuffler(object):
+    def __init__(self):
+        self.n_obs = None
+        self.n_dim = None
+        self.perm_idx = None
+                
+    def transform(self, data):
+        self.n_obs, self.n_dim = data.shape
+        self.perm_idx = np.random.permutation(self.n_obs)
+        return data[self.perm_idx,:]
+
+    def inv_transform(self, data):
+        return data[np.argsort(self.perm_idx),:]
+
         
 
 

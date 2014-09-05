@@ -110,7 +110,9 @@ class RBMTrainer(SGDParams):
                 self.print_progress()
 
             if self.visualize & (self.current_epoch % self.display_every == 0):
-                self.vis_learning()
+                self.log['gradients'] = gradients
+                self.log['states'] = states
+                self.vis_fun.vis(self)
 
         return self.rbm, self.log
         

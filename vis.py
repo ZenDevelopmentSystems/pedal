@@ -40,6 +40,8 @@ def gallery_gray_patches(W,show=False, rescale=False):
         plt.axis("image")
         plt.axis("off")
 
+    return im_gallery
+
 
 
 def gallery_rgb_patches(W,show=False, rescale=False):
@@ -79,40 +81,72 @@ def gallery_rgb_patches(W,show=False, rescale=False):
         plt.axis("off")
 
 
-class RBMLearning(object):
-    def __init__(self, cmap='hot'):
+class RBMTraining(object):
+    """General RBM Training Object"""
+    def __init__(self, cmap='jet'):
+
         self.fig = plt.figure("RBM Learning")
         
-        self.Wax = self.fig.add_subplot(331, title="W",visible=False)
-        self.Wplot = self.Wax.imshow(np.random.rand(2,2),
+        # INITIALIZE PLOTS
+        self.W_ax = self.fig.add_subplot(221, title="W")
+        self.W_plot = self.W_ax.imshow(np.random.rand(2,2),
                                      interpolation='none')
 
-        self.dWax = self.fig.add_subplot(332, title="dW", visible=False)
-        self.dWplot = self.dWax.imshow(np.random.rand(2,2),
+        self.dW_ax = self.fig.add_subplot(222, title="dW")
+        self.dW_plot = self.dW_ax.imshow(np.random.rand(2,2),
                                      interpolation='none')
+
+        self.a_hid_ax = self.fig.add_subplot(223, title="Hidden Activations")
+        self.a_hid_plot = self.a_hid_ax.hist(np.random.rand(200),bins=25)
+
+        self.err_ax = self.fig.add_subplot(224, title="Recon. Error")
+        self.err_plot = self.err_ax.plot(range(10),'r')
+
 
         # PROBABLY A BETTER WAY OF DOING THIS, i.e. AxesStack?
-        self.axis_names = ['Wax', 'dWax']
-
-        plt.set_cmap(cmap)
+        self.axis_names = ['W_ax', 'dW_ax','a_hid_ax', 'err_ax']
 
     def close(self):
         plt.close(self.fig)
 
     def set_data(self, data):
-        """Given a dict of axis labels and data, update data"""
+        """Given a dict of axis labels and data, update axes"""
         for k, v in data.items():
+            print ('key', k, 'value', v)
             try:            
                 self.__getattribute__(k).set_data(v)
-            except:
-                pass
+            except: 
+                self.__getattribute__(k).set_ydata(v)
+            else:
+                print 'data update failed: %s' % k
+
         self.refresh()
 
     def refresh(self):
         self.fig.canvas.draw()
+        # self.fig.show()
 
-    def visiblity(self, visibility=True):
-        for axname in self.axis_names:
-            self.__getattribute__(axname).set_visible(visibility)
+    def visibility(self, visibility=True):
+        print self.axis_names
+        for ax_name in self.axis_names:
+            try:
+                self.__getattribute__(ax_name).set_visible(visibility)
+            except: pass
 
         self.refresh()
+
+class RBMTrainingMNIST(RBMTraining):
+    def __init__(self):
+        super(RBMTrainingMNIST, self).__init__()
+    plt.set_cmap("gray")
+    def vis(self, trainer):
+        print 'updating data'
+        data = {'W_plot': gallery_gray_patches(trainer.rbm.W), 
+                'dW_plot': gallery_gray_patches(trainer.log['gradients']['dW'])}
+                # 'err_plot': np.array(trainer.log['error'])}
+                # 'a_hid_plot': trainer.log['states']['a_hid']}
+
+        print 'setting data/ refreshing'
+        self.set_data(data)
+        self.refresh()
+
